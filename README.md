@@ -60,6 +60,10 @@ Then modify the `CLOUDFLARE_ACCOUNT_ID` variable in the `wrangler.toml` file to 
 CLOUDFLARE_ACCOUNT_ID = "c8c30db3dddc4ad31065d336368c7905" # replace with your own.
 ```
 
+```bash
+sed -i -e "s#CLOUDFLARE_ACCOUNT_ID.*#CLOUDFLARE_ACCOUNT_ID = \"$CLOUDFLARE_ACCOUNT_ID\"#" ./wrangler.toml
+```
+
 Next, install the dependencies and deploy to your account. If you are not logged in to wrangler, you will be prompted to log in.
 
 ```bash

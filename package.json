@@ -3,11 +3,11 @@
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
-		"deploy": "wrangler deploy index.js",
-		"dev": "wrangler dev index.js --remote",
-		"init-dev": "wrangler r2 bucket create ai-images",
-		"init-prod": "wrangler r2 bucket create openai-cf-images",
-		"start-stackblitz": "WRANGLER_SEND_METRICS=false wrangler dev index.js --remote",
+		"deploy": "npx wrangler deploy index.js",
+		"dev": "npx wrangler dev index.js --remote",
+		"init-dev": "npx wrangler r2 bucket create ai-images",
+		"init-prod": "npx wrangler r2 bucket create openai-cf-images",
+		"start-stackblitz": "WRANGLER_SEND_METRICS=false npx wrangler dev index.js --remote",
 		"test": "vitest"
 	},
 	"dependencies": {
@@ -15,6 +15,6 @@
 	},
 	"devDependencies": {
 		"vitest": "^0.31.0",
-		"wrangler": "^3.0.0"
+		"wrangler": "^4.19.1"
 	}
 }
