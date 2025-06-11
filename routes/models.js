@@ -33,3 +33,44 @@ export const modelsHandler = async (request, env) => {
 		data: modelList,
 	});
 };
+
+export const validOllama = (request, env) => {
+	console.log('validOllama');
+return new Response('Ollama is running', {
+			status: 200,
+			headers: {
+				'access-control-allow-credentials': 'true',
+
+				'access-control-allow-headers': 'Origin, Content-Type, Accept, Authorization, x-requested-with',
+				'access-control-allow-methods': 'GET, POST, OPTIONS'
+
+			},
+		});
+}
+//https://github.com/ollama/ollama/blob/main/docs/api.md#list-local-models
+export const modelsHandlerOllama = async (request, env) => {
+	const models = await getModels(env);
+	const modelList = models.map(model => ({
+		name: `cf-ollam-${model.name}`,
+		model: model.name,
+		modified_at: "2025-05-04T17:37:44.706015396-07:00",
+		size: 2019393189,
+		digest: "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
+		details: {
+			parent_model: "",
+			format: "gguf",
+			family: "llama",
+			families: [
+				"llama"
+			],
+			parameter_size: "3.2B",
+			quantization_level: "Q4_K_M"
+		}
+	}));
+
+	return json({
+		models: modelList,
+	});
+};
+
+

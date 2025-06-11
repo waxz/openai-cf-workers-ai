@@ -1,17 +1,21 @@
 import { Router, createCors, error, json } from 'itty-router';
 
 // import the routes
-import { chatHandler } from './routes/chat';
+import { chatHandler, chatHandlerOllama } from './routes/chat';
 import { completionHandler } from './routes/completion';
 import { embeddingsHandler } from './routes/embeddings';
 import { transcriptionHandler, translationHandler } from './routes/audio';
 import { getImageHandler, imageGenerationHandler } from './routes/image';
-import { modelsHandler } from './routes/models';
+import { modelsHandler, modelsHandlerOllama, validOllama } from './routes/models';
 
 const { preflight, corsify } = createCors();
 
 // Create a new router
-const router = Router({ base: '/v1' });
+const router = Router({ base: '/' });
+const api_base = "/llm"
+const openai_api_base = `${api_base}/openai/v1`;
+const ollama_api_base = `${api_base}/ollama`;
+
 
 function extractToken(authorizationHeader) {
 	if (authorizationHeader) {
@@ -34,19 +38,52 @@ const bearerAuthentication = (request, env) => {
 	}
 };
 
+
+
+const passwordAuthentication = (request, env) => {
+	const authorizationHeader = request.headers.get('Authorization');
+
+	if (!authorizationHeader || !authorizationHeader.startsWith('Basic ')) {
+		// If no Authorization header or not basic auth, return 401 Unauthorized
+		return new Response('Unauthorized', {
+			status: 401,
+			headers: { 'WWW-Authenticate': 'Basic realm="Protected Area"' },
+		});
+	}
+
+	const encodedCredentials = authorizationHeader.substring('Basic '.length).trim();
+	const decodedCredentials = atob(encodedCredentials);
+	const [username, password] = decodedCredentials.split(':');
+
+
+
+	console.log(`passwordAuthentication username: ${username}, password: ${password},authorizationHeader : ${authorizationHeader}`)
+
+	const access_token = password;
+	if (env.ACCESS_TOKEN !== access_token) {
+		return error(403, 'Forbidden');
+	}
+};
+
 // CORS, see https://itty.dev/itty-router/cors
 router.all('*', preflight);
 
 router
-	.all('*', bearerAuthentication)
-	.post('/chat/completions', chatHandler)
-	.post('/completions', completionHandler)
-	.post('/embeddings', embeddingsHandler)
-	.post('/audio/transcriptions', transcriptionHandler)
-	.post('/audio/translations', translationHandler)
-	.post('/images/generations', imageGenerationHandler)
-	.get('/images/get/:name', getImageHandler)
-	.get('/models', modelsHandler);
+	.all(`${ollama_api_base}/*`, passwordAuthentication)
+	.get(`${ollama_api_base}/`, validOllama)
+
+	.get(`${ollama_api_base}/api/tags`, modelsHandlerOllama)
+	.post(`${ollama_api_base}/api/chat`, chatHandler);
+
+router.all(`${openai_api_base}/*`, bearerAuthentication)
+	.post(`${openai_api_base}/chat/completions`, chatHandler)
+	.post(`${openai_api_base}/completions`, completionHandler)
+	.post(`${openai_api_base}/embeddings`, embeddingsHandler)
+	.post(`${openai_api_base}/audio/transcriptions`, transcriptionHandler)
+	.post(`${openai_api_base}/audio/translations`, translationHandler)
+	.post(`${openai_api_base}/images/generations`, imageGenerationHandler)
+	.get(`${openai_api_base}/images/get/:name`, getImageHandler)
+	.get(`${openai_api_base}/models`, modelsHandler);
 
 // 404 for everything else
 router.all('*', () => new Response('404, not found!', { status: 404 }));
