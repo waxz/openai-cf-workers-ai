@@ -2,6 +2,27 @@
 
 ### <p align="center">Simple, quick, and dirty implementation of OpenAI's API on Cloudflare's new Workers AI platform.</p>
 
+## API
+- [x] Openai api
+- [x] Ollama api(New Update)
+
+## Dev
+<a href="https://studio.firebase.google.com/import?url=https%3A%2F%2Fgithub.com%2Fwaxz%2Fopenai-cf-workers-ai">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://cdn.firebasestudio.dev/btn/open_dark_32.svg">
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://cdn.firebasestudio.dev/btn/open_light_32.svg">
+    <img
+      height="32"
+      alt="Open in Firebase Studio"
+      src="https://cdn.firebasestudio.dev/btn/open_blue_32.svg">
+  </picture>
+</a>
+
+
 ## Why?
 
 I think that in the near future, smaller, cheaper LLMs will be a legitimate competitor to OpenAI's GPT-3.5 and GPT-4 APIs. Most developers will not want to rewrite their entire codebase in order to use these up-and-coming models. I also think that Cloudflare Workers are a neat way to host AI and APIs, so I implemented the OpenAI API on Workers AI. This allows developers to use the OpenAI SDKs with the new LLMs without having to rewrite all of their code. This code, as is Workers AI, is not production ready but will be semi-regularly updated with new features as they roll out to Workers AI.
@@ -96,14 +117,16 @@ This will start a local server that will proxy requests to your deployed API. Yo
 
 ## Usage
 
+#### Openai api
+
 See the [OpenAI API docs](https://platform.openai.com/docs/api-reference/introduction) for more information on the API. Here's an example from the OpenAI docs:
 
 ```bash
-curl https://openai-cf.yourusername.workers.dev/v1/chat/completions \
+curl https://openai-cf.yourusername.workers.dev/llm/openai/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <Any string value you set.>" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -d '{
-    "model": "@cf/meta/llama-2-7b-chat-int8",
+    "model": "@cf/meta/llama-3.2-1b-instruct",
     "messages": [
       {
         "role": "system",
@@ -115,7 +138,7 @@ curl https://openai-cf.yourusername.workers.dev/v1/chat/completions \
       }
     ]
   }'
-# {"id":"ccfbc7fc-d871-4139-90dc-e6c33fc7f275","model":"@cf/meta/llama-2-7b-chat-int8","created":1696701894,"object":"chat.completion","choices":[{"index":0,"message":{"role":"assistant","content":"Hello there! *adjusts glasses* It's a pleasure to meet you. Is there something I can help you with or would you like to chat? I'm here to assist you in any way I can. 😊"},"finish_reason":"stop"}],"usage":{"prompt_tokens":0,"completion_tokens":0,"total_tokens":0}}
+# {"id":"7612ca48-7a9b-40cd-b952-a5d76ff35ccb","model":"@cf/meta/llama-3.2-1b-instruct","created":1749784650,"object":"chat.completion","choices":[{"index":0,"message":{"role":"assistant","content":"Hello! It's nice to meet you. Is there something I can help you with or would you like to chat?"},"finish_reason":"stop"}],"usage":{"prompt_tokens":0,"completion_tokens":0,"total_tokens":0}}
 ```
 
 If you want to use this with the OpenAI Python or JavaScript SDK, you can use the following code, replace the base URL with your own. For example:
@@ -136,6 +159,39 @@ const openai = new OpenAI({
 });
 
 // rest of code
+```
+
+#### Ollama api
+
+```bash
+curl https://user:<ACCESS_TOKEN>openai-cf.yourusername.workers.dev/llm/ollama/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "@cf/meta/llama-3.2-1b-instruct",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Hello!"
+      }
+    ]
+  }'
+
+# {"created_at":"2025-06-13T03:13:20.859Z","model":"@cf/meta/llama-3.2-1b-instruct","message":{"role":"assistant","content":"Hello"},"stop":false}
+# {"created_at":"2025-06-13T03:13:20.859Z","model":"@cf/meta/llama-3.2-1b-instruct","message":{"role":"assistant","content":"!"},"stop":false}
+# {"created_at":"2025-06-13T03:13:20.859Z","model":"@cf/meta/llama-3.2-1b-instruct","message":{"role":"assistant","content":" How"},"stop":false}
+# {"created_at":"2025-06-13T03:13:20.859Z","model":"@cf/meta/llama-3.2-1b-instruct","message":{"role":"assistant","content":" can"},"stop":false}
+# {"created_at":"2025-06-13T03:13:20.859Z","model":"@cf/meta/llama-3.2-1b-instruct","message":{"role":"assistant","content":" I"},"stop":false}
+# {"created_at":"2025-06-13T03:13:20.859Z","model":"@cf/meta/llama-3.2-1b-instruct","message":{"role":"assistant","content":" assist"},"stop":false}
+# {"created_at":"2025-06-13T03:13:20.859Z","model":"@cf/meta/llama-3.2-1b-instruct","message":{"role":"assistant","content":" you"},"stop":false}
+# {"created_at":"2025-06-13T03:13:20.859Z","model":"@cf/meta/llama-3.2-1b-instruct","message":{"role":"assistant","content":" today"},"stop":false}
+# {"created_at":"2025-06-13T03:13:20.859Z","model":"@cf/meta/llama-3.2-1b-instruct","message":{"role":"assistant","content":"?"},"stop":false}
+# {"created_at":"2025-06-13T03:13:20.859Z","model":"@cf/meta/llama-3.2-1b-instruct","message":{"role":"assistant","content":""},"stop":false}
+# {"created_at":"2025-06-13T03:13:20.859Z","model":"@cf/meta/llama-3.2-1b-instruct","message":{"role":"assistant","content":""},"stop":false}
+# {"created_at":"2025-06-13T03:13:20.859Z","model":"@cf/meta/llama-3.2-1b-instruct","message":{"role":"assistant","content":""},"stop":true,"done_reason":"stop"}
 ```
 
 ## Compromises

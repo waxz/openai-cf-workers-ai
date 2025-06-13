@@ -13,8 +13,10 @@ const { preflight, corsify } = createCors();
 // Create a new router
 const router = Router({ base: '/' });
 const api_base = "/llm"
+
 const openai_api_base = `${api_base}/openai/v1`;
 const ollama_api_base = `${api_base}/ollama`;
+const ollama_api_no_auth_base = `${api_base}/ollama_no_auth`;
 
 
 function extractToken(authorizationHeader) {
@@ -68,12 +70,46 @@ const passwordAuthentication = (request, env) => {
 // CORS, see https://itty.dev/itty-router/cors
 router.all('*', preflight);
 
+
+const debug = (request, env) => {
+	// return modelsHandlerOllama(req, env);
+
+	var req = new Request("/llm/openai/v1/chat/completions", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"Authorization": "Bearer " + env.ACCESS_TOKEN,
+		},
+		body: JSON.stringify({
+			"model": "@cf/meta/llama-3.2-1b-instruct",
+			"messages": [
+				{
+					"role": "user",
+					"content": "Hello!"
+				}
+			],
+			stream: true
+		})
+	})
+	return chatHandlerOllama(req, env);
+
+	return new Response('debug', {
+		status: 200,
+		headers: { 'WWW-Authenticate': 'Basic realm="Protected Area"' },
+	});
+}
+// router.all('/debug', debug);
+
+// router
+// 	.get(`${ollama_api_no_auth_base}/`, validOllama)
+// 	.get(`${ollama_api_no_auth_base}/api/tags`, modelsHandlerOllama)
+// 	.post(`${ollama_api_no_auth_base}/api/chat`, chatHandlerOllama);
+
 router
 	.all(`${ollama_api_base}/*`, passwordAuthentication)
 	.get(`${ollama_api_base}/`, validOllama)
-
 	.get(`${ollama_api_base}/api/tags`, modelsHandlerOllama)
-	.post(`${ollama_api_base}/api/chat`, chatHandler);
+	.post(`${ollama_api_base}/api/chat`, chatHandlerOllama);
 
 router.all(`${openai_api_base}/*`, bearerAuthentication)
 	.post(`${openai_api_base}/chat/completions`, chatHandler)

@@ -50,10 +50,12 @@ return new Response('Ollama is running', {
 //https://github.com/ollama/ollama/blob/main/docs/api.md#list-local-models
 export const modelsHandlerOllama = async (request, env) => {
 	const models = await getModels(env);
+	const now = new Date();
+	const isoDate = now.toISOString();
 	const modelList = models.map(model => ({
-		name: `cf-ollam-${model.name}`,
+		name: `${model.name}`,
 		model: model.name,
-		modified_at: "2025-05-04T17:37:44.706015396-07:00",
+		modified_at: isoDate,
 		size: 2019393189,
 		digest: "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
 		details: {

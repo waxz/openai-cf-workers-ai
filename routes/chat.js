@@ -153,7 +153,10 @@ export const chatHandlerOllama = async (request, env) => {
 					messages = json.messages;
 				}
 			}
-			if (!json?.stream) json.stream = false;
+			if (!json?.stream) json.stream = true;
+
+			const now = new Date();
+			const isoDate = now.toISOString();
 
 			let buffer = '';
 			const decoder = new TextDecoder();
@@ -182,27 +185,39 @@ export const chatHandlerOllama = async (request, env) => {
 								console.log(content);
 								const doneflag = content.trim() == '[DONE]';
 								if (doneflag) {
-									controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+									//controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+									const newChunk =
+										// 'data: ' +
+										JSON.stringify({
+											created_at: isoDate,
+											model,
+											message: {
+												role: 'assistant',
+												content: "",
+											},
+											stop: true,
+											done_reason: "stop"
+										}) +
+										'\n';
+									controller.enqueue(encoder.encode(newChunk));
+
+
 									return;
 								}
 
 								const data = JSON.parse(content);
 								const newChunk =
-									'data: ' +
+									// 'data: ' +
 									JSON.stringify({
-										id: uuid,
-										created,
-										object: 'chat.completion.chunk',
+										created_at: isoDate,
 										model,
-										choices: [
-											{
-												delta: { content: data.response },
-												index: 0,
-												finish_reason: null,
-											},
-										],
+										message: {
+											role: 'assistant',
+											content: data.response,
+										},
+										stop: false
 									}) +
-									'\n\n';
+									'\n';
 								controller.enqueue(encoder.encode(newChunk));
 							}
 						} catch (err) {
@@ -217,30 +232,18 @@ export const chatHandlerOllama = async (request, env) => {
 			// Piping the readableStream through the transformStream
 			return json.stream ? new Response(aiResp.pipeThrough(transformer), {
 				headers: {
-					'content-type': 'text/event-stream',
+					'content-type': 'application/x-ndjson',
 					'Cache-Control': 'no-cache',
 					'Connection': 'keep-alive',
 				},
 			}) : Response.json({
-				id: uuid,
 				model,
-				created,
-				object: 'chat.completion',
-				choices: [
-					{
-						index: 0,
-						message: {
-							role: 'assistant',
-							content: aiResp.response,
-						},
-						finish_reason: 'stop',
-					},
-				],
-				usage: {
-					prompt_tokens: 0,
-					completion_tokens: 0,
-					total_tokens: 0,
+				created_at: isoDate,
+				message: {
+					role: 'assistant',
+					content: aiResp.response,
 				},
+				stop: true
 			});
 		}
 	} catch (e) {
